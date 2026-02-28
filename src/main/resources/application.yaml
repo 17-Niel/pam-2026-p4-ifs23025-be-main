@@ -2,16 +2,13 @@ ktor:
   application:
     modules:
       - org.delcom.ApplicationKt.module
-
   deployment:
-    port: 8001
-    host: localhost
+    port: ${APP_PORT}
+    host: ${APP_HOST}
 
   database:
-    host: 127.0.0.1
-    port: 5432
-    name: db_janda
-    user: postgres
-    password: postgres
-
-
+    host: ${DB_HOST}
+    port: ${DB_PORT}
+    name: ${DB_NAME}
+    user: ${DB_USER}
+    password: ${DB_PASSWORD}
