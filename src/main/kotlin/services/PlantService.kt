@@ -1,5 +1,6 @@
 package org.delcom.services
 
+
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
@@ -9,7 +10,7 @@ import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import org.delcom.data.AppException
 import org.delcom.data.DataResponse
-import org.delcom.data.SportRequest
+import org.delcom.data.PlantRequest
 import org.delcom.helpers.ValidatorHelper
 import org.delcom.repositories.IPlantRepository
 import java.io.File
@@ -46,9 +47,9 @@ class PlantService(private val plantRepository: IPlantRepository) {
     }
 
     // Ambil data request
-    private suspend fun getPlantRequest(call: ApplicationCall): SportRequest {
+    private suspend fun getPlantRequest(call: ApplicationCall): PlantRequest {
         // Buat object penampung
-        val plantReq = SportRequest()
+        val plantReq = PlantRequest()
 
         val multipartData = call.receiveMultipart(formFieldLimit = 1024 * 1024 * 5)
         multipartData.forEachPart { part ->
@@ -58,9 +59,8 @@ class PlantService(private val plantRepository: IPlantRepository) {
                     when (part.name) {
                         "nama" -> plantReq.nama = part.value.trim()
                         "deskripsi" -> plantReq.deskripsi = part.value
-                        "kelebihan" -> plantReq.kelebihan = part.value
-                        "teknologi_yang_digunkan" -> plantReq.teknologi_yang_digunkan = part.value
-                        "Tenaga" -> plantReq.Tenaga = part.value
+                        "manfaat" -> plantReq.manfaat = part.value
+                        "efekSamping" -> plantReq.efekSamping = part.value
                     }
                 }
 
@@ -91,7 +91,7 @@ class PlantService(private val plantRepository: IPlantRepository) {
     }
 
     // Validasi request data dari pengguna
-    private fun validatePlantRequest(plantReq: SportRequest){
+    private fun validatePlantRequest(plantReq: PlantRequest){
         val validatorHelper = ValidatorHelper(plantReq.toMap())
         validatorHelper.required("nama", "Nama tidak boleh kosong")
         validatorHelper.required("deskripsi", "Deskripsi tidak boleh kosong")

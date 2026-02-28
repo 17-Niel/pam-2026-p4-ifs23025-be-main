@@ -1,10 +1,11 @@
 package org.delcom.repositories
 
-import org.delcom.dao.SportDAO
-import org.delcom.entities.Sport
+
+import org.delcom.dao.PlantDAO
+import org.delcom.entities.Plant
 import org.delcom.helpers.daoToModel
 import org.delcom.helpers.suspendTransaction
-import org.delcom.tables.SportTable
+import org.delcom.tables.PlantTable
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
@@ -12,49 +13,48 @@ import org.jetbrains.exposed.sql.lowerCase
 import java.util.UUID
 
 class PlantRepository : IPlantRepository {
-    override suspend fun getPlants(search: String): List<Sport> = suspendTransaction {
+    override suspend fun getPlants(search: String): List<Plant> = suspendTransaction {
         if (search.isBlank()) {
-            SportDAO.all()
-                .orderBy(SportTable.createdAt to SortOrder.DESC)
+            PlantDAO.all()
+                .orderBy(PlantTable.createdAt to SortOrder.DESC)
                 .limit(20)
                 .map(::daoToModel)
         } else {
             val keyword = "%${search.lowercase()}%"
 
-            SportDAO
+            PlantDAO
                 .find {
-                    SportTable.nama.lowerCase() like keyword
+                    PlantTable.nama.lowerCase() like keyword
                 }
-                .orderBy(SportTable.nama to SortOrder.ASC)
+                .orderBy(PlantTable.nama to SortOrder.ASC)
                 .limit(20)
                 .map(::daoToModel)
         }
     }
 
-    override suspend fun getPlantById(id: String): Sport? = suspendTransaction {
-        SportDAO
-            .find { (SportTable.id eq UUID.fromString(id)) }
+    override suspend fun getPlantById(id: String): Plant? = suspendTransaction {
+        PlantDAO
+            .find { (PlantTable.id eq UUID.fromString(id)) }
             .limit(1)
             .map(::daoToModel)
             .firstOrNull()
     }
 
-    override suspend fun getPlantByName(name: String): Sport? = suspendTransaction {
-        SportDAO
-            .find { (SportTable.nama eq name) }
+    override suspend fun getPlantByName(name: String): Plant? = suspendTransaction {
+        PlantDAO
+            .find { (PlantTable.nama eq name) }
             .limit(1)
             .map(::daoToModel)
             .firstOrNull()
     }
 
-    override suspend fun addPlant(plant: Sport): String = suspendTransaction {
-        val plantDAO = SportDAO.new {
+    override suspend fun addPlant(plant: Plant): String = suspendTransaction {
+        val plantDAO = PlantDAO.new {
             nama = plant.nama
             pathGambar = plant.pathGambar
             deskripsi = plant.deskripsi
-            kelebihan = plant.kelebihan
-            teknologi_yang_digunkan = plant.teknologi_yang_digunkan
-            Tenaga = plant.Tenaga
+            manfaat = plant.manfaat
+            efekSamping = plant.efekSamping
             createdAt = plant.createdAt
             updatedAt = plant.updatedAt
         }
@@ -62,9 +62,9 @@ class PlantRepository : IPlantRepository {
         plantDAO.id.value.toString()
     }
 
-    override suspend fun updatePlant(id: String, newPlant: Sport): Boolean = suspendTransaction {
-        val plantDAO = SportDAO
-            .find { SportTable.id eq UUID.fromString(id) }
+    override suspend fun updatePlant(id: String, newPlant: Plant): Boolean = suspendTransaction {
+        val plantDAO = PlantDAO
+            .find { PlantTable.id eq UUID.fromString(id) }
             .limit(1)
             .firstOrNull()
 
@@ -72,9 +72,8 @@ class PlantRepository : IPlantRepository {
             plantDAO.nama = newPlant.nama
             plantDAO.pathGambar = newPlant.pathGambar
             plantDAO.deskripsi = newPlant.deskripsi
-            plantDAO.kelebihan = newPlant.kelebihan
-            plantDAO.teknologi_yang_digunkan = newPlant.teknologi_yang_digunkan
-            plantDAO.Tenaga = newPlant.Tenaga
+            plantDAO.manfaat = newPlant.manfaat
+            plantDAO.efekSamping = newPlant.efekSamping
             plantDAO.updatedAt = newPlant.updatedAt
             true
         } else {
@@ -83,10 +82,9 @@ class PlantRepository : IPlantRepository {
     }
 
     override suspend fun removePlant(id: String): Boolean = suspendTransaction {
-        val rowsDeleted = SportTable.deleteWhere {
-            SportTable.id eq UUID.fromString(id)
+        val rowsDeleted = PlantTable.deleteWhere {
+            PlantTable.id eq UUID.fromString(id)
         }
         rowsDeleted == 1
     }
-
 }

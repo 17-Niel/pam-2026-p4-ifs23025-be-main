@@ -1,6 +1,5 @@
 package org.delcom
 
-
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.*
 import io.ktor.server.plugins.statuspages.StatusPages
@@ -11,14 +10,15 @@ import org.delcom.data.ErrorResponse
 import org.delcom.helpers.parseMessageToMap
 import org.delcom.services.PlantService
 import org.delcom.services.ProfileService
+import org.delcom.services.SportService
 import org.koin.ktor.ext.inject
 
 fun Application.configureRouting() {
     val plantService: PlantService by inject()
     val profileService: ProfileService by inject()
+    val sportService: SportService by inject() // ✅ ditambahkan
 
     install(StatusPages) {
-        // Tangkap AppException
         exception<AppException> { call, cause ->
             val dataMap: Map<String, List<String>> = parseMessageToMap(cause.message)
 
@@ -32,7 +32,6 @@ fun Application.configureRouting() {
             )
         }
 
-        // Tangkap semua Throwable lainnya
         exception<Throwable> { call, cause ->
             call.respond(
                 status = HttpStatusCode.fromValue(500),
@@ -50,7 +49,9 @@ fun Application.configureRouting() {
             call.respondText("API telah berjalan. Dibuat oleh Daniel L. Tobing.")
         }
 
-        // Route Plants
+        // ======================
+        // Route Plants (tidak diubah)
+        // ======================
         route("/plants") {
             get {
                 plantService.getAllPlants(call)
@@ -67,14 +68,37 @@ fun Application.configureRouting() {
             delete("/{id}") {
                 plantService.deletePlant(call)
             }
-
             get("/{id}/image") {
                 plantService.getPlantImage(call)
             }
         }
 
-        // Route Profile
-        route("/profile"){
+        // ======================
+        // Route Sports (DITAMBAHKAN)
+        // ======================
+        route("/sports") {
+            get {
+                sportService.getAllSports(call)
+            }
+            post {
+                sportService.createSport(call)
+            }
+            get("/{id}") {
+                sportService.getSportById(call)
+            }
+            put("/{id}") {
+                sportService.updateSport(call)
+            }
+            delete("/{id}") {
+                sportService.deleteSport(call)
+            }
+            get("/{id}/image") {
+                sportService.getSportImage(call)
+            }
+        }
+
+        // Route Profile (tidak diubah)
+        route("/profile") {
             get {
                 profileService.getProfile(call)
             }

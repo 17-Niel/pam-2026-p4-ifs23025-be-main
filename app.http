@@ -127,3 +127,129 @@ Content-Type: image/png
 # @name DeletePlant
 DELETE {{BaseUrl}}/plants/{{plantId}}
 Content-Type: application/json
+
+
+## ===========================================
+## Sports
+## ===========================================
+
+### Mengambil semua data sport
+# @name GetAllSports
+GET {{BaseUrl}}/sports?search=
+Accept: application/json
+
+#> {%
+#    client.global.set("sportId", response.body.data.sports[0].id);
+#    console.log(client.global.get("sportId"))
+#%}
+
+### Menambahkan data sport baru
+# @name PostSport
+POST {{BaseUrl}}/sports
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="nama"
+
+Sepatu Lari X
+--WebAppBoundary
+Content-Disposition: form-data; name="deskripsi"
+
+Sepatu lari ringan dan nyaman.
+--WebAppBoundary
+Content-Disposition: form-data; name="kelebihan"
+
+Ringan dan tahan lama
+--WebAppBoundary
+Content-Disposition: form-data; name="teknologi_yang_digunkan"
+
+Air Cushion Technology
+--WebAppBoundary
+Content-Disposition: form-data; name="Tenaga"
+
+Manual
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="example.png"
+Content-Type: image/png
+
+< ./example.png
+--WebAppBoundary--
+
+> {%
+    client.global.set("sportId", response.body.data.sportId);
+    console.log(client.global.get("sportId"));
+%}
+
+### Mengambil data sport berdasarkan id
+# @name GetSportById
+GET {{BaseUrl}}/sports/{{sportId}}
+Accept: application/json
+
+### Melihat gambar sport
+# @name GetSportImageById
+GET {{BaseUrl}}/sports/{{sportId}}/image
+Accept: application/json
+
+### Update data sport saja
+# @name PutSportOnlyData
+PUT {{BaseUrl}}/sports/{{sportId}}
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="nama"
+
+Sepatu Lari Update
+--WebAppBoundary
+Content-Disposition: form-data; name="deskripsi"
+
+Update deskripsi
+--WebAppBoundary
+Content-Disposition: form-data; name="kelebihan"
+
+Update kelebihan
+--WebAppBoundary
+Content-Disposition: form-data; name="teknologi_yang_digunkan"
+
+Update teknologi
+--WebAppBoundary
+Content-Disposition: form-data; name="Tenaga"
+
+Manual
+--WebAppBoundary--
+
+### Update sport + gambar
+# @name PutSport
+PUT {{BaseUrl}}/sports/{{sportId}}
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="nama"
+
+Sepatu Lari Final
+--WebAppBoundary
+Content-Disposition: form-data; name="deskripsi"
+
+Final version
+--WebAppBoundary
+Content-Disposition: form-data; name="kelebihan"
+
+Super ringan
+--WebAppBoundary
+Content-Disposition: form-data; name="teknologi_yang_digunkan"
+
+Air Cushion Pro
+--WebAppBoundary
+Content-Disposition: form-data; name="Tenaga"
+
+Manual
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="example.png"
+Content-Type: image/png
+
+< ./example.png
+--WebAppBoundary--
+
+### Hapus sport
+# @name DeleteSport
+DELETE {{BaseUrl}}/sports/{{sportId}}
+Accept: application/json
