@@ -1,6 +1,7 @@
 ## Global Variabel
-@BaseUrl = https://pam-2026-p4-ifs18005-be.delcom.org:8080
+#@BaseUrl = https://pam-2026-p4-ifs18005-be.delcom.org:8080
 #@BaseUrl = http://127.0.0.1:8000
+@BaseUrl = http://pam-2026-p4-ifs23025-be.nieltobing.fun:8080/
 
 ## Profile
 ## ===========================================
