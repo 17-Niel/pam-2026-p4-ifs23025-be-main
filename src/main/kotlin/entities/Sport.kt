@@ -13,8 +13,8 @@ data class Sport(
     var pathGambar: String,
     var deskripsi: String,
     val kelebihan: String,
-    val teknologi_yang_digunkan: String,
-    val Tenaga: String,
+    val teknologi: String,
+    val tenaga: String,
 
     @Contextual
     val createdAt: Instant = Clock.System.now(),

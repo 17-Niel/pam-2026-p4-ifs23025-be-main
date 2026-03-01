@@ -14,8 +14,8 @@ class SportDAO(id: EntityID<UUID>) : Entity<UUID>(id) {
     var pathGambar by SportTable.pathGambar
     var deskripsi by SportTable.deskripsi
     var kelebihan by SportTable.kelebihan
-    var teknologi_yang_digunkan by SportTable.teknologi_yang_digunkan
-    var Tenaga by SportTable.Tenaga
+    var teknologi by SportTable.teknologi
+    var tenaga by SportTable.tenaga
     var createdAt by SportTable.createdAt
     var updatedAt by SportTable.updatedAt
 }

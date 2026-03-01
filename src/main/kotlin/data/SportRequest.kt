@@ -8,8 +8,8 @@ data class SportRequest(
     var nama: String = "",
     var deskripsi: String = "",
     var kelebihan: String = "",
-    var teknologi_yang_digunkan: String = "",
-    var Tenaga: String = "",
+    var teknologi: String = "",
+    var tenaga: String = "",
     var pathGambar: String = "",
 ){
     fun toMap(): Map<String, Any?> {
@@ -17,8 +17,8 @@ data class SportRequest(
             "nama" to nama,
             "deskripsi" to deskripsi,
             "kelebihan" to kelebihan,
-            "teknologi_yang_digunkan" to teknologi_yang_digunkan,
-            "Tenaga" to Tenaga,
+            "teknologi" to teknologi,
+            "tenaga" to tenaga,
             "pathGambar" to pathGambar
         )
     }
@@ -28,8 +28,8 @@ data class SportRequest(
             nama = nama,
             deskripsi = deskripsi,
             kelebihan = kelebihan,
-            teknologi_yang_digunkan = teknologi_yang_digunkan,
-            Tenaga = Tenaga,
+            teknologi = teknologi,
+            tenaga = tenaga,
             pathGambar =  pathGambar,
         )
     }

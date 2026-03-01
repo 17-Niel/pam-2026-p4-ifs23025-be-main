@@ -8,8 +8,8 @@ object SportTable : UUIDTable("plants") {
     val pathGambar = varchar("path_gambar", 255)
     val deskripsi = text("deskripsi")
     val kelebihan = text("kelebihan")
-    val teknologi_yang_digunkan = text("teknologi_yang_digunkan")
-    val Tenaga = text("Tenaga")
+    val teknologi = text("teknologi_yang_digunkan")
+    val tenaga = text("tenaga")
     val createdAt = timestamp("created_at")
     val updatedAt = timestamp("updated_at")
 }

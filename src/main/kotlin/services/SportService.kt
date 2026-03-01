@@ -59,8 +59,8 @@ class SportService(private val sportRepository: ISportRepository) {
                         "nama" -> sportReq.nama = part.value.trim()
                         "deskripsi" -> sportReq.deskripsi = part.value
                         "kelebihan" -> sportReq.kelebihan = part.value
-                        "teknologi_yang_digunkan" -> sportReq.teknologi_yang_digunkan = part.value
-                        "Tenaga" -> sportReq.Tenaga = part.value
+                        "teknologi" -> sportReq.teknologi = part.value
+                        "tenaga" -> sportReq.tenaga = part.value
                     }
                 }
 
@@ -96,8 +96,8 @@ class SportService(private val sportRepository: ISportRepository) {
         validatorHelper.required("nama", "Nama tidak boleh kosong")
         validatorHelper.required("deskripsi", "Deskripsi tidak boleh kosong")
         validatorHelper.required("kelebihan", "Kelebihan tidak boleh kosong")
-        validatorHelper.required("teknologi_yang_digunkan", "Teknologi tidak boleh kosong")
-        validatorHelper.required("Tenaga", "Tenaga tidak boleh kosong")
+        validatorHelper.required("teknologi", "Teknologi tidak boleh kosong")
+        validatorHelper.required("tenaga", "Tenaga tidak boleh kosong")
         validatorHelper.required("pathGambar", "Gambar tidak boleh kosong")
 
         validatorHelper.validate()

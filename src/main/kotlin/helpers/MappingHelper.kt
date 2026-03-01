@@ -29,8 +29,8 @@ fun daoToModel(dao: SportDAO) = Sport(
     dao.pathGambar,
     dao.deskripsi,
     dao.kelebihan,
-    dao.teknologi_yang_digunkan,
-    dao.Tenaga,
+    dao.teknologi,
+    dao.tenaga,
     dao.createdAt,
     dao.updatedAt
 )

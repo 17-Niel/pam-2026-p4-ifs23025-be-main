@@ -55,8 +55,8 @@ class SportRepository : ISportRepository {
             pathGambar = sport.pathGambar
             deskripsi = sport.deskripsi
             kelebihan = sport.kelebihan
-            teknologi_yang_digunkan = sport.teknologi_yang_digunkan
-            Tenaga = sport.Tenaga
+            teknologi = sport.teknologi
+            tenaga = sport.tenaga
             createdAt = sport.createdAt
             updatedAt = sport.updatedAt
         }
@@ -75,8 +75,8 @@ class SportRepository : ISportRepository {
             sportDAO.pathGambar = newSport.pathGambar
             sportDAO.deskripsi = newSport.deskripsi
             sportDAO.kelebihan = newSport.kelebihan
-            sportDAO.teknologi_yang_digunkan = newSport.teknologi_yang_digunkan
-            sportDAO.Tenaga = newSport.Tenaga
+            sportDAO.teknologi = newSport.teknologi
+            sportDAO.tenaga = newSport.tenaga
             sportDAO.updatedAt = newSport.updatedAt
             true
         } else {
