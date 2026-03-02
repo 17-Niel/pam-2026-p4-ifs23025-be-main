@@ -15,7 +15,7 @@ class ProfileService {
             mapOf(
                 Pair("username", "niel.valvoline"),
                 Pair("nama", "Daniel L. Tobing"),
-                Pair("tentang", "Saya adalah seorang developer yang tertarik pada mobile development, backend API, dan berbagai teknologi pengembangan aplikasi. Senang belajar hal baru dan membangun aplikasi yang berguna."),
+                Pair("tentang", "I am a highly skilled and dedicated software developer with strong expertise in Android, iOS, and web application development. I specialize in building responsive, scalable, and high-performance applications with a strong focus on clean architecture, security, and user experience. With solid experience working both independently and within cross-functional teams, I am able to translate business requirements into innovative and efficient digital solutions. I am committed to delivering high-quality products that meet industry standards and provide exceptional value to users."),
             )
         )
         call.respond(response)
