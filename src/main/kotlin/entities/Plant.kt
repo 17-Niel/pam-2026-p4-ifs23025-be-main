@@ -19,4 +19,15 @@ data class Plant(
     val createdAt: Instant = Clock.System.now(),
     @Contextual
     var updatedAt: Instant = Clock.System.now(),
-)
+) {
+    // BARU: Field untuk URL publik gambar
+    val gambar: String
+        get() {
+            return if (pathGambar.isNotEmpty()) {
+                val filename = pathGambar.substringAfterLast("/")
+                "/static/plants/$filename"
+            } else {
+                ""
+            }
+        }
+}

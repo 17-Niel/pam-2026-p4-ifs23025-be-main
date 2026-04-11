@@ -45,5 +45,6 @@ fun Application.module() {
     }
 
     configureDatabases()
+    configureStaticContent()  // ← BARU: Tambahkan ini
     configureRouting()
 }

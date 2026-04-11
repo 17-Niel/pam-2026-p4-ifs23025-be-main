@@ -1,6 +1,5 @@
 package org.delcom.services
 
-
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
@@ -48,13 +47,11 @@ class PlantService(private val plantRepository: IPlantRepository) {
 
     // Ambil data request
     private suspend fun getPlantRequest(call: ApplicationCall): PlantRequest {
-        // Buat object penampung
         val plantReq = PlantRequest()
 
         val multipartData = call.receiveMultipart(formFieldLimit = 1024 * 1024 * 5)
         multipartData.forEachPart { part ->
             when (part) {
-                // Ambil request berupa teks
                 is PartData.FormItem -> {
                     when (part.name) {
                         "nama" -> plantReq.nama = part.value.trim()
@@ -64,7 +61,6 @@ class PlantService(private val plantRepository: IPlantRepository) {
                     }
                 }
 
-                // Upload file
                 is PartData.FileItem -> {
                     val ext = part.originalFileName
                         ?.substringAfterLast('.', "")
@@ -75,7 +71,7 @@ class PlantService(private val plantRepository: IPlantRepository) {
                     val filePath = "uploads/plants/$fileName"
 
                     val file = File(filePath)
-                    file.parentFile.mkdirs() // pastikan folder ada
+                    file.parentFile.mkdirs()
 
                     part.provider().copyAndClose(file.writeChannel())
                     plantReq.pathGambar = filePath
@@ -90,32 +86,35 @@ class PlantService(private val plantRepository: IPlantRepository) {
         return plantReq
     }
 
-    // Validasi request data dari pengguna
-    private fun validatePlantRequest(plantReq: PlantRequest){
+    // BARU: Validasi dengan parameter isUpdate
+    private fun validatePlantRequest(plantReq: PlantRequest, isUpdate: Boolean = false){
         val validatorHelper = ValidatorHelper(plantReq.toMap())
         validatorHelper.required("nama", "Nama tidak boleh kosong")
         validatorHelper.required("deskripsi", "Deskripsi tidak boleh kosong")
         validatorHelper.required("manfaat", "Manfaat tidak boleh kosong")
         validatorHelper.required("efekSamping", "Efek Samping tidak boleh kosong")
-        validatorHelper.required("pathGambar", "Gambar tidak boleh kosong")
-        validatorHelper.validate()
 
-        val file = File(plantReq.pathGambar)
-        if (!file.exists()) {
-            throw AppException(400, "Gambar tumbuhan gagal diupload!")
+        // Hanya validasi gambar jika bukan update ATAU ada gambar baru
+        if (!isUpdate || plantReq.pathGambar.isNotEmpty()) {
+            validatorHelper.required("pathGambar", "Gambar tidak boleh kosong")
         }
 
+        validatorHelper.validate()
+
+        if (plantReq.pathGambar.isNotEmpty()) {
+            val file = File(plantReq.pathGambar)
+            if (!file.exists()) {
+                throw AppException(400, "Gambar tumbuhan gagal diupload!")
+            }
+        }
     }
 
     // Menambahkan data tumbuhan
     suspend fun createPlant(call: ApplicationCall) {
-        // Ambil data request
         val plantReq = getPlantRequest(call)
 
-        // Validasi request
-        validatePlantRequest(plantReq)
+        validatePlantRequest(plantReq, isUpdate = false)
 
-        // periksa plant dengan nama yang sama
         val existPlant = plantRepository.getPlantByName(plantReq.nama)
         if(existPlant != null){
             val tmpFile = File(plantReq.pathGambar)
@@ -125,9 +124,7 @@ class PlantService(private val plantRepository: IPlantRepository) {
             throw AppException(409, "Tumbuhan dengan nama ini sudah terdaftar!")
         }
 
-        val plantId = plantRepository.addPlant(
-            plantReq.toEntity()
-        )
+        val plantId = plantRepository.addPlant(plantReq.toEntity())
 
         val response = DataResponse(
             "success",
@@ -137,30 +134,34 @@ class PlantService(private val plantRepository: IPlantRepository) {
         call.respond(response)
     }
 
-    // Mengubah data tumbuhan
+    // UPDATE: Mengubah data tumbuhan
     suspend fun updatePlant(call: ApplicationCall) {
         val id = call.parameters["id"]
             ?: throw AppException(400, "ID tumbuhan tidak boleh kosong!")
 
-        val oldPlant = plantRepository.getPlantById(id) ?: throw AppException(404, "Data tumbuhan tidak tersedia!")
+        val oldPlant = plantRepository.getPlantById(id)
+            ?: throw AppException(404, "Data tumbuhan tidak tersedia!")
 
-        // Ambil data request
         val plantReq = getPlantRequest(call)
 
+        // Jika tidak ada gambar baru, gunakan gambar lama
         if(plantReq.pathGambar.isEmpty()){
             plantReq.pathGambar = oldPlant.pathGambar
         }
 
-        // Validasi request
-        validatePlantRequest(plantReq)
+        // Validasi request (isUpdate = true agar gambar tidak wajib)
+        validatePlantRequest(plantReq, isUpdate = true)
 
-        // periksa plant dengan nama yang sama jika nama diubah
+        // Periksa nama duplikat jika nama diubah
         if(plantReq.nama != oldPlant.nama){
             val existPlant = plantRepository.getPlantByName(plantReq.nama)
             if(existPlant != null){
-                val tmpFile = File(plantReq.pathGambar)
-                if(tmpFile.exists()){
-                    tmpFile.delete()
+                // Hapus file gambar baru jika ada
+                if(plantReq.pathGambar != oldPlant.pathGambar) {
+                    val tmpFile = File(plantReq.pathGambar)
+                    if(tmpFile.exists()){
+                        tmpFile.delete()
+                    }
                 }
                 throw AppException(409, "Tumbuhan dengan nama ini sudah terdaftar!")
             }
@@ -174,9 +175,7 @@ class PlantService(private val plantRepository: IPlantRepository) {
             }
         }
 
-        val isUpdated = plantRepository.updatePlant(
-            id, plantReq.toEntity()
-        )
+        val isUpdated = plantRepository.updatePlant(id, plantReq.toEntity())
         if (!isUpdated) {
             throw AppException(400, "Gagal memperbarui data tumbuhan!")
         }
@@ -203,7 +202,6 @@ class PlantService(private val plantRepository: IPlantRepository) {
             throw AppException(400, "Gagal menghapus data tumbuhan!")
         }
 
-        // Hapus data gambar jika data tumbuhan sudah dihapus
         if (oldFile.exists()) {
             oldFile.delete()
         }
@@ -230,6 +228,13 @@ class PlantService(private val plantRepository: IPlantRepository) {
             return call.respond(HttpStatusCode.NotFound)
         }
 
+        val contentType = when (file.extension.lowercase()) {
+            "png" -> ContentType.Image.PNG
+            "jpg", "jpeg" -> ContentType.Image.JPEG
+            else -> ContentType.Image.Any
+        }
+
+        call.response.header(HttpHeaders.ContentType, contentType.toString())
         call.respondFile(file)
     }
 }

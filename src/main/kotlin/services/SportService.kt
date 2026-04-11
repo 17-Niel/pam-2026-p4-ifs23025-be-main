@@ -17,7 +17,6 @@ import java.util.*
 
 class SportService(private val sportRepository: ISportRepository) {
 
-    // Mengambil semua data mobil
     suspend fun getAllSports(call: ApplicationCall) {
         val search = call.request.queryParameters["search"] ?: ""
         val sports = sportRepository.getSports(search)
@@ -30,7 +29,6 @@ class SportService(private val sportRepository: ISportRepository) {
         call.respond(response)
     }
 
-    // Mengambil data olahraga berdasarkan id
     suspend fun getSportById(call: ApplicationCall) {
         val id = call.parameters["id"]
             ?: throw AppException(400, "ID olahraga tidak boleh kosong!")
@@ -46,14 +44,12 @@ class SportService(private val sportRepository: ISportRepository) {
         call.respond(response)
     }
 
-    // Ambil data request multipart
     private suspend fun getSportRequest(call: ApplicationCall): SportRequest {
         val sportReq = SportRequest()
 
         val multipartData = call.receiveMultipart(formFieldLimit = 1024 * 1024 * 5)
         multipartData.forEachPart { part ->
             when (part) {
-
                 is PartData.FormItem -> {
                     when (part.name) {
                         "nama" -> sportReq.nama = part.value.trim()
@@ -89,8 +85,8 @@ class SportService(private val sportRepository: ISportRepository) {
         return sportReq
     }
 
-    // Validasi request
-    private fun validateSportRequest(sportReq: SportRequest) {
+    // BARU: Validasi dengan parameter isUpdate
+    private fun validateSportRequest(sportReq: SportRequest, isUpdate: Boolean = false) {
         val validatorHelper = ValidatorHelper(sportReq.toMap())
 
         validatorHelper.required("nama", "Nama tidak boleh kosong")
@@ -98,20 +94,25 @@ class SportService(private val sportRepository: ISportRepository) {
         validatorHelper.required("kelebihan", "Kelebihan tidak boleh kosong")
         validatorHelper.required("teknologi", "Teknologi tidak boleh kosong")
         validatorHelper.required("tenaga", "Tenaga tidak boleh kosong")
-        validatorHelper.required("pathGambar", "Gambar tidak boleh kosong")
+
+        // Hanya validasi gambar jika bukan update ATAU ada gambar baru
+        if (!isUpdate || sportReq.pathGambar.isNotEmpty()) {
+            validatorHelper.required("pathGambar", "Gambar tidak boleh kosong")
+        }
 
         validatorHelper.validate()
 
-        val file = File(sportReq.pathGambar)
-        if (!file.exists()) {
-            throw AppException(400, "Gambar olahraga gagal diupload!")
+        if (sportReq.pathGambar.isNotEmpty()) {
+            val file = File(sportReq.pathGambar)
+            if (!file.exists()) {
+                throw AppException(400, "Gambar olahraga gagal diupload!")
+            }
         }
     }
 
-    // Menambahkan data olahraga
     suspend fun createSport(call: ApplicationCall) {
         val sportReq = getSportRequest(call)
-        validateSportRequest(sportReq)
+        validateSportRequest(sportReq, isUpdate = false)
 
         val existSport = sportRepository.getSportByName(sportReq.nama)
         if (existSport != null) {
@@ -130,7 +131,7 @@ class SportService(private val sportRepository: ISportRepository) {
         call.respond(response)
     }
 
-    // Mengubah data olahraga
+    // UPDATE: Mengubah data olahraga
     suspend fun updateSport(call: ApplicationCall) {
         val id = call.parameters["id"]
             ?: throw AppException(400, "ID olahraga tidak boleh kosong!")
@@ -144,13 +145,15 @@ class SportService(private val sportRepository: ISportRepository) {
             sportReq.pathGambar = oldSport.pathGambar
         }
 
-        validateSportRequest(sportReq)
+        validateSportRequest(sportReq, isUpdate = true)
 
         if (sportReq.nama != oldSport.nama) {
             val existSport = sportRepository.getSportByName(sportReq.nama)
             if (existSport != null) {
-                val tmpFile = File(sportReq.pathGambar)
-                if (tmpFile.exists()) tmpFile.delete()
+                if (sportReq.pathGambar != oldSport.pathGambar) {
+                    val tmpFile = File(sportReq.pathGambar)
+                    if (tmpFile.exists()) tmpFile.delete()
+                }
                 throw AppException(409, "Olahraga dengan nama ini sudah terdaftar!")
             }
         }
@@ -173,7 +176,6 @@ class SportService(private val sportRepository: ISportRepository) {
         call.respond(response)
     }
 
-    // Menghapus data olahraga
     suspend fun deleteSport(call: ApplicationCall) {
         val id = call.parameters["id"]
             ?: throw AppException(400, "ID olahraga tidak boleh kosong!")
@@ -198,7 +200,6 @@ class SportService(private val sportRepository: ISportRepository) {
         call.respond(response)
     }
 
-    // Mengambil gambar olahraga
     suspend fun getSportImage(call: ApplicationCall) {
         val id = call.parameters["id"]
             ?: return call.respond(HttpStatusCode.BadRequest)
@@ -211,6 +212,13 @@ class SportService(private val sportRepository: ISportRepository) {
             return call.respond(HttpStatusCode.NotFound)
         }
 
+        val contentType = when (file.extension.lowercase()) {
+            "png" -> ContentType.Image.PNG
+            "jpg", "jpeg" -> ContentType.Image.JPEG
+            else -> ContentType.Image.Any
+        }
+
+        call.response.header(HttpHeaders.ContentType, contentType.toString())
         call.respondFile(file)
     }
 }
