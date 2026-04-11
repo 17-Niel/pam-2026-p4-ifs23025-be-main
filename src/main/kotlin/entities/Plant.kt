@@ -20,12 +20,12 @@ data class Plant(
     @Contextual
     var updatedAt: Instant = Clock.System.now(),
 ) {
-    // URL LENGKAP untuk gambar (bisa langsung dipakai frontend)
+    // URL publik untuk gambar
     val gambar: String
         get() {
             return if (pathGambar.isNotEmpty()) {
                 val filename = pathGambar.substringAfterLast("/")
-                "https://pam-2026-p4-ifs23025-be.nieltobing.fun:8080/static/plants/$filename"
+                "/static/plants/$filename"
             } else {
                 ""
             }

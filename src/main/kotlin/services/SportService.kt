@@ -23,11 +23,11 @@ class SportService(private val sportRepository: ISportRepository) {
             println("📋 GET /sports - search: $search")
 
             val sports = sportRepository.getSports(search)
-            println("📋 Ditemukan ${sports.size} olahraga")
+            println("📋 Ditemukan ${sports.size} Mobil Sport")
 
             val response = DataResponse(
                 "success",
-                "Berhasil mengambil daftar olahraga",
+                "Berhasil mengambil daftar Mobil Sport",
                 mapOf("sports" to sports)
             )
             call.respond(response)
@@ -42,17 +42,17 @@ class SportService(private val sportRepository: ISportRepository) {
         println("📋 GET /sports/$id")
 
         if (id == null) {
-            throw AppException(400, "ID olahraga tidak boleh kosong!")
+            throw AppException(400, "ID Mobil Sport tidak boleh kosong!")
         }
 
         val sport = sportRepository.getSportById(id)
         if (sport == null) {
-            throw AppException(404, "Data olahraga tidak tersedia!")
+            throw AppException(404, "Data Mobil Sport tidak tersedia!")
         }
 
         val response = DataResponse(
             "success",
-            "Berhasil mengambil data olahraga",
+            "Berhasil mengambil data Mobil Sport",
             mapOf("sport" to sport)
         )
         call.respond(response)
@@ -116,7 +116,7 @@ class SportService(private val sportRepository: ISportRepository) {
         if (sportReq.pathGambar.isNotEmpty()) {
             val file = File(sportReq.pathGambar)
             if (!file.exists()) {
-                throw AppException(400, "Gambar olahraga gagal diupload!")
+                throw AppException(400, "Gambar Mobil Sport gagal diupload!")
             }
         }
     }
@@ -130,7 +130,7 @@ class SportService(private val sportRepository: ISportRepository) {
         if (existSport != null) {
             val tmpFile = File(sportReq.pathGambar)
             if (tmpFile.exists()) tmpFile.delete()
-            throw AppException(409, "Olahraga dengan nama ini sudah terdaftar!")
+            throw AppException(409, "Mobil Sport dengan nama ini sudah terdaftar!")
         }
 
         val sportId = sportRepository.addSport(sportReq.toEntity())
@@ -138,7 +138,7 @@ class SportService(private val sportRepository: ISportRepository) {
 
         val response = DataResponse(
             "success",
-            "Berhasil menambahkan data olahraga",
+            "Berhasil menambahkan data Mobil Sport",
             mapOf("sportId" to sportId)
         )
         call.respond(response)
@@ -149,12 +149,12 @@ class SportService(private val sportRepository: ISportRepository) {
         println("📝 PUT /sports/$id")
 
         if (id == null) {
-            throw AppException(400, "ID olahraga tidak boleh kosong!")
+            throw AppException(400, "ID Mobil Sport tidak boleh kosong!")
         }
 
         val oldSport = sportRepository.getSportById(id)
         if (oldSport == null) {
-            throw AppException(404, "Data olahraga tidak tersedia!")
+            throw AppException(404, "Data Mobil Sport tidak tersedia!")
         }
 
         val sportReq = getSportRequest(call)
@@ -173,7 +173,7 @@ class SportService(private val sportRepository: ISportRepository) {
                     val tmpFile = File(sportReq.pathGambar)
                     if (tmpFile.exists()) tmpFile.delete()
                 }
-                throw AppException(409, "Olahraga dengan nama ini sudah terdaftar!")
+                throw AppException(409, "Mobil Sport dengan nama ini sudah terdaftar!")
             }
         }
 
@@ -187,13 +187,13 @@ class SportService(private val sportRepository: ISportRepository) {
 
         val isUpdated = sportRepository.updateSport(id, sportReq.toEntity())
         if (!isUpdated) {
-            throw AppException(400, "Gagal memperbarui data olahraga!")
+            throw AppException(400, "Gagal memperbarui data Mobil Sport!")
         }
 
         println("✅ Sport updated: $id")
         val response = DataResponse(
             "success",
-            "Berhasil mengubah data olahraga",
+            "Berhasil mengubah data Mobil Sport",
             null
         )
         call.respond(response)
@@ -204,19 +204,19 @@ class SportService(private val sportRepository: ISportRepository) {
         println("🗑️ DELETE /sports/$id")
 
         if (id == null) {
-            throw AppException(400, "ID olahraga tidak boleh kosong!")
+            throw AppException(400, "ID Mobil Sport tidak boleh kosong!")
         }
 
         val oldSport = sportRepository.getSportById(id)
         if (oldSport == null) {
-            throw AppException(404, "Data olahraga tidak tersedia!")
+            throw AppException(404, "Data Mobil Sport tidak tersedia!")
         }
 
         val oldFile = File(oldSport.pathGambar)
 
         val isDeleted = sportRepository.removeSport(id)
         if (!isDeleted) {
-            throw AppException(400, "Gagal menghapus data olahraga!")
+            throw AppException(400, "Gagal menghapus data Mobil Sport!")
         }
 
         if (oldFile.exists()) {
@@ -227,7 +227,7 @@ class SportService(private val sportRepository: ISportRepository) {
         println("✅ Sport deleted: $id")
         val response = DataResponse(
             "success",
-            "Berhasil menghapus data olahraga",
+            "Berhasil menghapus data Mobil Sport",
             null
         )
         call.respond(response)
