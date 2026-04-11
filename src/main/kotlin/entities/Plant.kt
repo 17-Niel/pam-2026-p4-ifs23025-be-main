@@ -20,7 +20,7 @@ data class Plant(
     @Contextual
     var updatedAt: Instant = Clock.System.now(),
 ) {
-    // BARU: Field untuk URL publik gambar
+    // URL publik untuk gambar
     val gambar: String
         get() {
             return if (pathGambar.isNotEmpty()) {

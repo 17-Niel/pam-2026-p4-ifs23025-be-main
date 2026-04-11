@@ -18,23 +18,37 @@ import java.util.*
 class SportService(private val sportRepository: ISportRepository) {
 
     suspend fun getAllSports(call: ApplicationCall) {
-        val search = call.request.queryParameters["search"] ?: ""
-        val sports = sportRepository.getSports(search)
+        try {
+            val search = call.request.queryParameters["search"] ?: ""
+            println("📋 GET /sports - search: $search")
 
-        val response = DataResponse(
-            "success",
-            "Berhasil mengambil daftar olahraga",
-            mapOf("sports" to sports)
-        )
-        call.respond(response)
+            val sports = sportRepository.getSports(search)
+            println("📋 Ditemukan ${sports.size} olahraga")
+
+            val response = DataResponse(
+                "success",
+                "Berhasil mengambil daftar olahraga",
+                mapOf("sports" to sports)
+            )
+            call.respond(response)
+        } catch (e: Exception) {
+            println("❌ Error getAllSports: ${e.message}")
+            throw e
+        }
     }
 
     suspend fun getSportById(call: ApplicationCall) {
         val id = call.parameters["id"]
-            ?: throw AppException(400, "ID olahraga tidak boleh kosong!")
+        println("📋 GET /sports/$id")
+
+        if (id == null) {
+            throw AppException(400, "ID olahraga tidak boleh kosong!")
+        }
 
         val sport = sportRepository.getSportById(id)
-            ?: throw AppException(404, "Data olahraga tidak tersedia!")
+        if (sport == null) {
+            throw AppException(404, "Data olahraga tidak tersedia!")
+        }
 
         val response = DataResponse(
             "success",
@@ -47,7 +61,7 @@ class SportService(private val sportRepository: ISportRepository) {
     private suspend fun getSportRequest(call: ApplicationCall): SportRequest {
         val sportReq = SportRequest()
 
-        val multipartData = call.receiveMultipart(formFieldLimit = 1024 * 1024 * 5)
+        val multipartData = call.receiveMultipart(formFieldLimit = 1024 * 1024 * 10)
         multipartData.forEachPart { part ->
             when (part) {
                 is PartData.FormItem -> {
@@ -58,15 +72,13 @@ class SportService(private val sportRepository: ISportRepository) {
                         "teknologi" -> sportReq.teknologi = part.value
                         "tenaga" -> sportReq.tenaga = part.value
                     }
+                    println("📝 Field ${part.name}: ${part.value.take(50)}")
                 }
 
                 is PartData.FileItem -> {
-                    val ext = part.originalFileName
-                        ?.substringAfterLast('.', "")
-                        ?.let { if (it.isNotEmpty()) ".$it" else "" }
-                        ?: ""
-
-                    val fileName = UUID.randomUUID().toString() + ext
+                    val originalName = part.originalFileName ?: "file"
+                    val ext = originalName.substringAfterLast('.', "")
+                    val fileName = UUID.randomUUID().toString() + if (ext.isNotEmpty()) ".$ext" else ""
                     val filePath = "uploads/sports/$fileName"
 
                     val file = File(filePath)
@@ -74,6 +86,7 @@ class SportService(private val sportRepository: ISportRepository) {
 
                     part.provider().copyAndClose(file.writeChannel())
                     sportReq.pathGambar = filePath
+                    println("📸 Upload gambar: $filePath")
                 }
 
                 else -> {}
@@ -85,7 +98,6 @@ class SportService(private val sportRepository: ISportRepository) {
         return sportReq
     }
 
-    // BARU: Validasi dengan parameter isUpdate
     private fun validateSportRequest(sportReq: SportRequest, isUpdate: Boolean = false) {
         val validatorHelper = ValidatorHelper(sportReq.toMap())
 
@@ -95,7 +107,6 @@ class SportService(private val sportRepository: ISportRepository) {
         validatorHelper.required("teknologi", "Teknologi tidak boleh kosong")
         validatorHelper.required("tenaga", "Tenaga tidak boleh kosong")
 
-        // Hanya validasi gambar jika bukan update ATAU ada gambar baru
         if (!isUpdate || sportReq.pathGambar.isNotEmpty()) {
             validatorHelper.required("pathGambar", "Gambar tidak boleh kosong")
         }
@@ -111,6 +122,7 @@ class SportService(private val sportRepository: ISportRepository) {
     }
 
     suspend fun createSport(call: ApplicationCall) {
+        println("📝 POST /sports - Create new sport")
         val sportReq = getSportRequest(call)
         validateSportRequest(sportReq, isUpdate = false)
 
@@ -122,6 +134,7 @@ class SportService(private val sportRepository: ISportRepository) {
         }
 
         val sportId = sportRepository.addSport(sportReq.toEntity())
+        println("✅ Sport created with ID: $sportId")
 
         val response = DataResponse(
             "success",
@@ -131,18 +144,24 @@ class SportService(private val sportRepository: ISportRepository) {
         call.respond(response)
     }
 
-    // UPDATE: Mengubah data olahraga
     suspend fun updateSport(call: ApplicationCall) {
         val id = call.parameters["id"]
-            ?: throw AppException(400, "ID olahraga tidak boleh kosong!")
+        println("📝 PUT /sports/$id")
+
+        if (id == null) {
+            throw AppException(400, "ID olahraga tidak boleh kosong!")
+        }
 
         val oldSport = sportRepository.getSportById(id)
-            ?: throw AppException(404, "Data olahraga tidak tersedia!")
+        if (oldSport == null) {
+            throw AppException(404, "Data olahraga tidak tersedia!")
+        }
 
         val sportReq = getSportRequest(call)
 
         if (sportReq.pathGambar.isEmpty()) {
             sportReq.pathGambar = oldSport.pathGambar
+            println("📸 Menggunakan gambar lama: ${sportReq.pathGambar}")
         }
 
         validateSportRequest(sportReq, isUpdate = true)
@@ -160,7 +179,10 @@ class SportService(private val sportRepository: ISportRepository) {
 
         if (sportReq.pathGambar != oldSport.pathGambar) {
             val oldFile = File(oldSport.pathGambar)
-            if (oldFile.exists()) oldFile.delete()
+            if (oldFile.exists()) {
+                oldFile.delete()
+                println("🗑️ Hapus gambar lama: ${oldSport.pathGambar}")
+            }
         }
 
         val isUpdated = sportRepository.updateSport(id, sportReq.toEntity())
@@ -168,6 +190,7 @@ class SportService(private val sportRepository: ISportRepository) {
             throw AppException(400, "Gagal memperbarui data olahraga!")
         }
 
+        println("✅ Sport updated: $id")
         val response = DataResponse(
             "success",
             "Berhasil mengubah data olahraga",
@@ -178,10 +201,16 @@ class SportService(private val sportRepository: ISportRepository) {
 
     suspend fun deleteSport(call: ApplicationCall) {
         val id = call.parameters["id"]
-            ?: throw AppException(400, "ID olahraga tidak boleh kosong!")
+        println("🗑️ DELETE /sports/$id")
+
+        if (id == null) {
+            throw AppException(400, "ID olahraga tidak boleh kosong!")
+        }
 
         val oldSport = sportRepository.getSportById(id)
-            ?: throw AppException(404, "Data olahraga tidak tersedia!")
+        if (oldSport == null) {
+            throw AppException(404, "Data olahraga tidak tersedia!")
+        }
 
         val oldFile = File(oldSport.pathGambar)
 
@@ -190,8 +219,12 @@ class SportService(private val sportRepository: ISportRepository) {
             throw AppException(400, "Gagal menghapus data olahraga!")
         }
 
-        if (oldFile.exists()) oldFile.delete()
+        if (oldFile.exists()) {
+            oldFile.delete()
+            println("🗑️ Hapus file gambar: ${oldSport.pathGambar}")
+        }
 
+        println("✅ Sport deleted: $id")
         val response = DataResponse(
             "success",
             "Berhasil menghapus data olahraga",
@@ -202,23 +235,20 @@ class SportService(private val sportRepository: ISportRepository) {
 
     suspend fun getSportImage(call: ApplicationCall) {
         val id = call.parameters["id"]
-            ?: return call.respond(HttpStatusCode.BadRequest)
+        if (id == null) {
+            return call.respond(HttpStatusCode.BadRequest)
+        }
 
         val sport = sportRepository.getSportById(id)
-            ?: return call.respond(HttpStatusCode.NotFound)
+        if (sport == null) {
+            return call.respond(HttpStatusCode.NotFound)
+        }
 
         val file = File(sport.pathGambar)
         if (!file.exists()) {
             return call.respond(HttpStatusCode.NotFound)
         }
 
-        val contentType = when (file.extension.lowercase()) {
-            "png" -> ContentType.Image.PNG
-            "jpg", "jpeg" -> ContentType.Image.JPEG
-            else -> ContentType.Image.Any
-        }
-
-        call.response.header(HttpHeaders.ContentType, contentType.toString())
         call.respondFile(file)
     }
 }
