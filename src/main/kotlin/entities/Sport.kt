@@ -21,12 +21,12 @@ data class Sport(
     @Contextual
     var updatedAt: Instant = Clock.System.now(),
 ) {
-    // URL publik untuk gambar
+    // URL LENGKAP untuk gambar (bisa langsung dipakai frontend)
     val gambar: String
         get() {
             return if (pathGambar.isNotEmpty()) {
                 val filename = pathGambar.substringAfterLast("/")
-                "/static/sports/$filename"
+                "https://pam-2026-p4-ifs23025-be.nieltobing.fun:8080/static/sports/$filename"
             } else {
                 ""
             }
